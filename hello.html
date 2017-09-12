@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello Analytics Reporting API V4</title>
+    <meta name="google-signin-client_id" content="496957449309-cm5khfh6d0ihvavr6h96akuhd0hu0bmi.apps.googleusercontent.com">
+    <meta name="google-signin-scope" content="https://www.googleapis.com/auth/analytics.readonly">
+</head>
+
+<body>
+    <script>
+        (function (w, d, s, g, js, fs) {
+            g = w.gapi || (w.gapi = {}); g.analytics = { q: [], ready: function (f) { this.q.push(f); } };
+            js = d.createElement(s); fs = d.getElementsByTagName(s)[0];
+            js.src = 'https://apis.google.com/js/platform.js';
+            fs.parentNode.insertBefore(js, fs); js.onload = function () { g.load('analytics'); };
+        }(window, document, 'script'));
+    </script>
+    <h1>Hello Analytics Reporting API V4</h1>
+
+    <!-- The Sign-in button. This will run `queryReports()` on success. -->
+    <p class="g-signin2" data-onsuccess=""></p>
+
+    <input type="text" id="pagePath" rows="20" />
+    <input type="button" id="button_count" onclick="getViews()" value="Get Views" />
+    <br/>
+    <input type="text" disabled="disabled" id="get_views" style="color: green" />
+    <script>
+        // Replace with your view ID.
+        var VIEW_ID = '159770033';
+        function queryReports(VIEW_ID, startDate, endDate, pagePath) {
+            gapi.client.request({
+                path: '/v4/reports:batchGet',
+                root: 'https://analyticsreporting.googleapis.com/',
+                method: 'POST',
+                body: {
+                    reportRequests: [
+                        {
+                            viewId: VIEW_ID,
+                            dateRanges: [
+                                {
+                                    startDate: startDate,
+                                    endDate: endDate
+                                }
+                            ],
+                            metrics: [
+                                {
+                                    expression: 'ga:pageviews'
+                                }
+                            ],
+                            dimensionFilterClauses: [{
+                                filters: [{
+                                    dimension_name: 'ga:pagePath',
+                                    operator: 'EXACT',
+                                    expressions: pagePath
+                                }]
+                            }]
+                        }
+                    ]
+                }
+            }).then(displayResults, console.error.bind(console));
+        }
+
+        function displayResults(response) {
+
+            var formattedJson = JSON.stringify(response.result, null, 2);
+            var viewsCount = response.result.reports[0].data.totals[0].values[0];
+            var y = parseInt(viewsCount);
+            document.getElementById('get_views').value = y;
+        }
+        function getViews() {
+            var pagePath = document.getElementById('pagePath').value;
+            var startDate = '2017-09-10';
+            var endDate = '2017-09-14';
+            queryReports(VIEW_ID, startDate, endDate, pagePath);
+            
+        }
+    </script>
+
+    <!-- Load the JavaScript API client and Sign-in library. -->
+    <script src="https://apis.google.com/js/client:platform.js"></script>
+
+</body>
+
+</html>
